@@ -1,0 +1,65 @@
+- name: Copy ZK ADIC configs to server
+  copy:
+    src: files/adics
+    dest: /opt/segmint/
+    force: no
+
+- name: Copy ZK KLI configs to server
+  copy:
+    src: files/klis
+    dest: /opt/segmint/
+    force: no
+
+- name: Copy libs to servers
+  copy:
+    src: files/libs/
+    dest: /opt/segmint/solr/server/solr/lib/
+    force: no
+
+- name: Check for ADICs existing
+  raw: curl -s http://localhost:8983/solr/admin/collections?action=list --noproxy localhost |grep adics
+  register: adics
+  tags:
+    - upload
+  ignore_errors: true
+
+#- debug: var=result
+#  tags:
+#    - upload
+
+- name: Check for ADICs existing
+  raw: curl -s http://localhost:8983/solr/admin/collections?action=list --noproxy localhost |grep klis
+  register: klis
+  tags:
+    - upload
+  ignore_errors: true
+
+- name: Check for ADICs in ZK
+  raw: /opt/segmint/solr-6.3.0/server/scripts/cloud-scripts/zkcli.sh -zkhost "{{ groups['zkHosts'].0 }}" -cmd list|grep adics
+  register: zkadic
+  ignore_errors: true
+  tags:
+    - upload
+
+- name: Upload ADICs to zookeeper
+  command: /opt/segmint/solr-6.3.0/server/scripts/cloud-scripts/zkcli.sh -zkhost "{{ groups['zkHosts'].0 }}" -cmd upconfig -confdir /opt/segmint/adics -confname adics
+  tags:
+    - upload
+  when: zkadic|failed
+  notify: Create ADICs
+
+- name: Check for KLIs in ZK
+  raw: /opt/segmint/solr-6.3.0/server/scripts/cloud-scripts/zkcli.sh -zkhost "{{ groups['zkHosts'].0 }}" -cmd list|grep klis
+  register: zkkli
+  ignore_errors: true
+  tags:
+    - upload
+
+- name: Upload KLIs to zookeeper
+  command: /opt/segmint/solr-6.3.0/server/scripts/cloud-scripts/zkcli.sh -zkhost "{{ groups['zkHosts'].0 }}" -cmd upconfig -confdir /opt/segmint/klis -confname klis
+  tags:
+    - upload
+  when: zkkli|failed
+  notify: Create KLIs
+
+

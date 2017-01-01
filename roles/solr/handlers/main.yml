@@ -1,0 +1,24 @@
+---
+- name: restart solr
+  service:
+    name: "{{ solr_service_name }}"
+    state: restarted
+    sleep: 5
+
+- name: Create ADICs
+  become_user: solr
+  command: /opt/segmint/solr/bin/solr create -c adics -s 3 -rf 3
+  when: adics|failed
+#  ignore_errors: yes
+
+- name: Create KLIs
+  become_user: solr
+  command: /opt/segmint/solr/bin/solr create -c klis -s 3 -rf 3
+  when: klis|failed
+#  ignore_errors: yes
+
+- name: restart datadog
+  service:
+    name: datadog-agent
+    state: restarted
+    sleep: 5

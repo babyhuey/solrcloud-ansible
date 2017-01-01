@@ -1,0 +1,9 @@
+[solrHosts]
+solr-01.stage.segmint.net
+solr-02.stage.segmint.net
+solr-03.stage.segmint.net
+
+[zkHosts]
+zoo-01.stage.segmint.net
+zoo-02.stage.segmint.net
+zoo-03.stage.segmint.net
